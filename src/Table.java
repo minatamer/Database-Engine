@@ -3,22 +3,21 @@ import java.util.Vector;
 
 public class Table implements java.io.Serializable {
 	 
-	private Hashtable<String, String> pageNameDirectory;
+	private Vector<String> pageDirectories;
      
      public Table(){
-    	 pageNameDirectory = new Hashtable<String, String>();
+    	 pageDirectories = new Vector<String>();
     	 
      }
 
-	public Hashtable<String, String> getPageNameDirectory() {
-		return pageNameDirectory;
+	public Vector<String> getPageDirectories() {
+		return pageDirectories;
 	}
 
-	public void setPageNameDirectory(Hashtable<String, String> pageNameDirectory) {
-		this.pageNameDirectory = pageNameDirectory;
+	public void setPageDirectories(Vector<String> pageDirectories) {
+		this.pageDirectories = pageDirectories;
 	}
-     
-     
+
     
 
 }

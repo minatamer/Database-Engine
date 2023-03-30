@@ -9,7 +9,7 @@ public class Page implements java.io.Serializable  {
 	private Hashtable<String,String> htblColNameType;
 	private Hashtable<String,String> htblColNameMin;
 	private Hashtable<String,String> htblColNameMax;
-	private Vector<Row> colNameValue;
+	private Vector<Row> rows;
 	
 	
 	
@@ -21,7 +21,7 @@ public class Page implements java.io.Serializable  {
 		this.htblColNameType = htblColNameType;
 		this.htblColNameMin = htblColNameMin;
 		this.htblColNameMax = htblColNameMax;
-		colNameValue = new Vector<Row>();
+		rows = new Vector<Row>();
 	}
 
 
@@ -85,15 +85,17 @@ public class Page implements java.io.Serializable  {
 	}
 
 
-	public Vector<Row> getColNameValue() {
-		return colNameValue;
+	public Vector<Row> getRows() {
+		return rows;
 	}
 
 
-	public void setColNameValue(Vector<Row> colNameValue) {
-		this.colNameValue = colNameValue;
+	public void setRows(Vector<Row> rows) {
+		this.rows = rows;
 	}
-	
+
+
+
 	
 	
 
