@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,6 +18,8 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class DBApp  {
 	private int maximumRowsCountinTablePage;
@@ -110,19 +113,19 @@ public class DBApp  {
         
         //CREATING NEW TABLE IF TABLE DOES NOT ALREADY EXIST AND MAKING A SERIALIZABLE FILE
         
-        Page page= new Page(1, strClusteringKeyColumn, strTableName , htblColNameType , htblColNameMin , htblColNameMax );
-        Table table = new Table ();
-        String pageDirectory = "src/resources/" + strTableName + 1 + ".class";
-        table.getPageDirectories().add(pageDirectory);
+        //Page page= new Page(1, strClusteringKeyColumn, strTableName , htblColNameType , htblColNameMin , htblColNameMax );
+        Table table = new Table (strClusteringKeyColumn, htblColNameType , htblColNameMin , htblColNameMax );
+        //String pageDirectory = "src/resources/" + strTableName + 1 + ".class";
+        //table.getPageDirectories().add(pageDirectory);
         
         try {
-            File file = new File("src/resources/" + strTableName +  1 + ".class");
+       /*     File file = new File("src/resources/" + strTableName +  1 + ".class");
             file.createNewFile();
             FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + 1 + ".class");
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(page);
             out.close();
-            fileOut.close();
+            fileOut.close();*/
             
             File tablefile = new File("src/resources/" + strTableName + "Table.class");
             tablefile.createNewFile();
@@ -144,8 +147,126 @@ public class DBApp  {
 
 	
 	
-public void insertIntoTable(String strTableName, Hashtable<String,Object> htblColNameValue) throws DBAppException, IOException, ClassNotFoundException, EOFException {
+public void insertIntoTable(String strTableName, Hashtable<String,Object> htblColNameValue) throws DBAppException, IOException, ClassNotFoundException, EOFException, ParseException {
+		//MAKE SURE THAT THE TABLE EXISTS -> VALIDATION
+	 File f = new File("src/resources/" + strTableName + "Table.class"); 
+	 boolean e = f. exists();
+	 if(e==false) {
+		 throw new DBAppException("Table does not exist");
+	 }
+	
+	 FileInputStream tableFileIn2 = new FileInputStream("src/resources/" + strTableName + "Table.class");
+	 ObjectInputStream tableIn2 = new ObjectInputStream(tableFileIn2);
+	 Table t2 = (Table) tableIn2.readObject();
+	 
+	 FileOutputStream tableFileOut2 = new FileOutputStream("src/resources/" + strTableName + "Table.class");
+     ObjectOutputStream tableOut2 = new ObjectOutputStream(tableFileOut2);
+     tableOut2.writeObject(t2);
+     tableOut2.close();
+     tableFileOut2.close();
+	 
+	 String primaryKey= t2.getClusteringKey();
+	 Hashtable<String,String> hashtableColumns = t2.getHtblColNameType();
+	 Hashtable<String,String> hashtableMin= t2.getHtblColNameMin();
+	 Hashtable<String,String> hashtableMax= t2.getHtblColNameMax();
+	 
+	 //VALIDTIONS ON THE HASHTABLE, CHECK IF PRIMARY KEY EXIST, CHECK IF NO VALUE IS HIGHER THAN MAX, SMALLER THAN MIN
+	 if(htblColNameValue.get(primaryKey)==null)
+		 throw new DBAppException("Cannot insert a tuple without a clustering key");
+	 Enumeration<String> enumerator = htblColNameValue.keys();
+	 while (enumerator.hasMoreElements()) {
+            String key = enumerator.nextElement();
+            Object o = htblColNameValue.get(key);
+            String min = hashtableMin.get(key);
+            String max = hashtableMax.get(key);
+            
+            String type = hashtableColumns.get(key);
+            if(type.equals("java.lang.Integer")) {
+            	if (!(o instanceof Integer))
+            		throw new DBAppException(key + " has a wrong type");
+            	
+            	int num = (Integer) o;
+            	if(num < Integer.parseInt(min))
+            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+            	if(num > Integer.parseInt(max))
+            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+            }
+            
+            if(type.equals("java.lang.Double")) {
+            	if (!(o instanceof Double))
+            		throw new DBAppException(key + " has a wrong type");
+            	
+            	double num = (Double) o;
+            	if(num < Double.parseDouble(min))
+            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+            	if(num > Double.parseDouble(max))
+            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+            }
+            
+            if(type.equals("java.lang.String")) {
+            	if (!(o instanceof String))
+            		throw new DBAppException(key + " has a wrong type");
+            	
+            	String s = (String) o;
+            	if(s.length()<min.length())
+            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+            	if(s.length() > max.length())
+            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+            }
+            
+            if(type.equals("java.util.Date")) {
+            	if (!(o instanceof Date))
+            		throw new DBAppException(key + " has a wrong type");
+            	
+            	Date d = (Date) o;
+            	Date minDate=new SimpleDateFormat("YYYY-MM-DD").parse(min);  
+            	Date maxDate=new SimpleDateFormat("YYYY-MM-DD").parse(max);  
+            	if(d.compareTo(minDate)<0)
+            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+            	if(d.compareTo(maxDate)>0)
+            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+            }
+            	
+            
+   
+            
+            
+           
+            	
+            	
+	 }
+	
+	 
+	
+	//CASE THE TABLE DOES NOT HAVE ANY PAGES AS IT IS A NEW TABLE 
+	if (findLatestPage(strTableName)==0) {
+		 FileInputStream tableFileIn = new FileInputStream("src/resources/" + strTableName + "Table.class");
+		 ObjectInputStream tableIn = new ObjectInputStream(tableFileIn);
+		 Table t = (Table) tableIn.readObject();
+		 Page page= new Page(1, t.getClusteringKey(), strTableName , t.getHtblColNameType() , t.getHtblColNameMin() , t.getHtblColNameMax() );
+		 t.getPageDirectories().add("src/resources/" + strTableName + 1 + ".class");
+		 Row newRow = new Row(page.getTableName()+page.getPageNumber(), htblColNameValue);
+		 page.getRows().add(newRow);
+		 FileOutputStream pagefileOut = new FileOutputStream("src/resources/" + strTableName + 1 + ".class");
+         ObjectOutputStream pageout = new ObjectOutputStream(pagefileOut);
+	     pageout.writeObject(page);
+	     pageout.close();
+	     pagefileOut.close();
+			
+		 
+		 FileOutputStream tableFileOut = new FileOutputStream("src/resources/" + strTableName + "Table.class");
+	     ObjectOutputStream tableOut = new ObjectOutputStream(tableFileOut);
+	     tableOut.writeObject(t);
+	     tableOut.close();
+	     tableFileOut.close();
+	     return;
 		
+	}
+	 
+     
+	
+	
+	
 			int counter=1;
 			boolean pageFound=false;
 			while(pageFound==false) {
@@ -171,13 +292,13 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			            
 			            FileInputStream tableFileIn = new FileInputStream("src/resources/" + strTableName + "Table.class");
 						 ObjectInputStream tableIn = new ObjectInputStream(tableFileIn);
-						 Table t = (Table) in.readObject(); 
+						 Table t = (Table) tableIn.readObject(); 
 						 
-						 t.getPageDirectories().add(strTableName+newPage.getPageNumber());
+						 t.getPageDirectories().add("src/resources/" + strTableName+newPage.getPageNumber() + ".class");
 						 
 						 FileOutputStream tableFileOut = new FileOutputStream("src/resources/" + strTableName + "Table.class");
 				         ObjectOutputStream tableOut = new ObjectOutputStream(tableFileOut);
-				         tableOut.writeObject(p);
+				         tableOut.writeObject(t);
 				         tableOut.close();
 				         tableFileOut.close();
 			            
@@ -211,6 +332,8 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			 try (ObjectInputStream in = new ObjectInputStream(fileIn)) {
 			    
 				 Page p = (Page) in.readObject();
+				 fileIn.close();
+				 in.close();
 				 String clusteringKey = p.getClusteringKey();
 				 Object valueToCompareWith = htblColNameValue.get(clusteringKey);
 				 //IF EMPTY PAGE, INSERT IMMEDIATELY
@@ -230,7 +353,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 				 
 				 
 				 Object lastValueFromRows =p.getRows().lastElement().getColNameValue().get(clusteringKey);
-				 if(compare(valueToCompareWith,lastValueFromRows)>=0 && p.getRows().size()==200) {
+				 if(compare(valueToCompareWith,lastValueFromRows)>=0 && p.getRows().size()==maximumRowsCountinTablePage) {
 					 //if true, it cannot be inserted, so serialize this page and increase counter
 					 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + counter + ".class");
 			         ObjectOutputStream out = new ObjectOutputStream(fileOut);
@@ -258,20 +381,28 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 				 
 			 }
 		}
-		FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + counter + ".class");
-		 ObjectInputStream in = new ObjectInputStream(fileIn);
-		  Page p = (Page) in.readObject(); 
-		 if(p.getRows().size()>maximumRowsCountinTablePage) {
+	    
+			
+			 
+			 
+				 FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + counter + ".class");
+				 ObjectInputStream in = new ObjectInputStream(fileIn);
+				  Page p = (Page) in.readObject(); 
+				  fileIn.close();
+				  in.close();
+				 if(p.getRows().size()>maximumRowsCountinTablePage) {
+						
+					 Row extraRow = p.getRows().lastElement();
+					 p.getRows().remove(p.getRows().size()-1);
+					 insertIntoTable(strTableName, extraRow.getColNameValue());
+					 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + counter + ".class");
+			         ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			         out.writeObject(p);
+			         out.close();
+			         fileOut.close(); 
+			 
+		
 				
-			 Row extraRow = p.getRows().lastElement();
-			 p.getRows().remove(p.getRows().size()-1);
-			 insertIntoTable(strTableName, extraRow.getColNameValue());
-			 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + counter + ".class");
-	         ObjectOutputStream out = new ObjectOutputStream(fileOut);
-	         out.writeObject(p);
-	         out.close();
-	         fileOut.close(); 
-	         
 	         
 	         
 	        
@@ -289,6 +420,146 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 	}
 	public void updateTable(String strTableName, String strClusteringKeyValue,Hashtable<String,Object> htblColNameValue )throws DBAppException, ClassNotFoundException, IOException, ParseException {
 		
+		//MAKE SURE THAT THE TABLE EXISTS -> VALIDATION
+		File f = new File("src/resources/" + strTableName + "Table.class"); 
+		 boolean e = f. exists();
+		 if(e==false) {
+			 throw new DBAppException("Table does not exist");
+		 }
+		 //VALIDATIONS ON THE HASHTABLE
+		 FileInputStream tableFileIn2 = new FileInputStream("src/resources/" + strTableName + "Table.class");
+		 ObjectInputStream tableIn2 = new ObjectInputStream(tableFileIn2);
+		 Table t2 = (Table) tableIn2.readObject();
+		 
+		 FileOutputStream tableFileOut2 = new FileOutputStream("src/resources/" + strTableName + "Table.class");
+	     ObjectOutputStream tableOut2 = new ObjectOutputStream(tableFileOut2);
+	     tableOut2.writeObject(t2);
+	     tableOut2.close();
+	     tableFileOut2.close();
+		 
+		 String primaryKey= t2.getClusteringKey();
+		 Hashtable<String,String> hashtableColumns = t2.getHtblColNameType();
+		 Hashtable<String,String> hashtableMin= t2.getHtblColNameMin();
+		 Hashtable<String,String> hashtableMax= t2.getHtblColNameMax();
+		 
+		 Object keyValue2= stringConverter(strClusteringKeyValue,strTableName);
+		 
+		 String primaryKeyType = hashtableColumns.get(primaryKey);
+		 String primaryKeyMin = hashtableMin.get(primaryKey);
+		 String primaryKeyMax = hashtableMax.get(primaryKey);
+		 
+		 if(primaryKeyType.equals("java.lang.Integer")) {
+         	if (!(keyValue2 instanceof Integer))
+         		throw new DBAppException("The clustering key has a wrong type");
+         	
+         	int num = (Integer) keyValue2;
+         	if(num < Integer.parseInt(primaryKeyMin))
+         		throw new DBAppException("The clustering key is smaller than the Minimum requirement");
+         	if(num > Integer.parseInt(primaryKeyMax))
+         		throw new DBAppException("The clustering key is bigger than the Maximum requirement");
+         }
+         
+         if(primaryKeyType.equals("java.lang.Double")) {
+         	if (!(keyValue2 instanceof Double))
+         		throw new DBAppException("The clustering key has a wrong type");
+         	
+         	double num = (Double) keyValue2;
+         	if(num < Double.parseDouble(primaryKeyMin))
+         		throw new DBAppException("The clustering key is smaller than the Minimum requirement");
+         	if(num > Double.parseDouble(primaryKeyMax))
+         		throw new DBAppException("The clustering key is bigger than the Maximum requirement");
+         }
+         
+         if(primaryKeyType.equals("java.lang.String")) {
+         	if (!(keyValue2 instanceof String))
+         		throw new DBAppException("The clustering key has a wrong type");
+         	
+         	String s = (String) keyValue2;
+         	if(s.length()<primaryKeyMin.length())
+         		throw new DBAppException("The clustering key is smaller than the Minimum requirement");
+         	if(s.length() > primaryKeyMax.length())
+         		throw new DBAppException("The clustering key is bigger than the Maximum requirement");
+         }
+         
+         if(primaryKeyType.equals("java.util.Date")) {
+         	if (!(keyValue2 instanceof Date))
+         		throw new DBAppException("The clustering key has a wrong type");
+         	
+         	Date d = (Date) keyValue2;
+         	Date minDate=new SimpleDateFormat("YYYY-MM-DD").parse(primaryKeyMin);  
+         	Date maxDate=new SimpleDateFormat("YYYY-MM-DD").parse(primaryKeyMax);  
+         	if(d.compareTo(minDate)<0)
+         		throw new DBAppException("The clustering key is smaller than the Minimum requirement");
+         	if(d.compareTo(maxDate)>0)
+         		throw new DBAppException("The clustering key is bigger than the Maximum requirement");
+         }
+         	
+		 
+		 
+		 Enumeration<String> enumerator = htblColNameValue.keys();
+		 while (enumerator.hasMoreElements()) {
+	            String key = enumerator.nextElement();
+	            Object o = htblColNameValue.get(key);
+	            String min = hashtableMin.get(key);
+	            String max = hashtableMax.get(key);
+	            
+	            String type = hashtableColumns.get(key);
+	            if(type.equals("java.lang.Integer")) {
+	            	if (!(o instanceof Integer))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	int num = (Integer) o;
+	            	if(num < Integer.parseInt(min))
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(num > Integer.parseInt(max))
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            
+	            if(type.equals("java.lang.Double")) {
+	            	if (!(o instanceof Double))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	double num = (Double) o;
+	            	if(num < Double.parseDouble(min))
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(num > Double.parseDouble(max))
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            
+	            if(type.equals("java.lang.String")) {
+	            	if (!(o instanceof String))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	String s = (String) o;
+	            	if(s.length()<min.length())
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(s.length() > max.length())
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            
+	            if(type.equals("java.util.Date")) {
+	            	if (!(o instanceof Date))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	Date d = (Date) o;
+	            	Date minDate=new SimpleDateFormat("YYYY-MM-DD").parse(min);  
+	            	Date maxDate=new SimpleDateFormat("YYYY-MM-DD").parse(max);  
+	            	if(d.compareTo(minDate)<0)
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(d.compareTo(maxDate)>0)
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            	
+	            
+	   
+	            
+	            
+	           
+	            	
+	            	
+		 }
+		 
+		 
 		//SEARCH FOR PAGE INDEX AND ROW INDEX
 		int pageIndex = binarySearchPage(strTableName,strClusteringKeyValue) ;
 		Object keyValue= stringConverter(strClusteringKeyValue,strTableName); //CONVERTS KEY STRING TO AN OBJECT TO BE COMPARABLE
@@ -311,7 +582,209 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 	}
 	
 	public void deleteFromTable(String strTableName, Hashtable<String,Object> htblColNameValue) throws DBAppException {
+		//MAKE SURE THAT THE TABLE EXISTS -> VALIDATION
+		File f = new File("src/resources/" + strTableName + "Table.class"); 
+		 boolean e2 = f. exists();
+		 if(e2==false) {
+			 throw new DBAppException("Table does not exist");
+		 }
+		 
+		 //MAKE SURE THERE IS ATLEAST ONE PAGE OF TABLE
+		 File f2 = new File("src/resources/" + strTableName + "1.class"); 
+		 boolean e3 = f2. exists();
+		 if(e3==false) {
+			 throw new DBAppException("Table does not contain any tuples to delete");
+		 }
+		 
+		//CASE 1: WE WANT TO DELETE JUST ONE ROW AND THE INPUT GAVE US THE PRIMARY KEY VALUE
+			//GET THE KEY FIRST
+		String keyName = "";
+		try {
+	        
+        	BufferedReader br = new BufferedReader(new FileReader("src/metadata.csv"));
+        	String line="";
+        	while ((line = br.readLine()) != null) {
+               String[] values = line.split(",");
+               if (values[0].equals(strTableName)) {	
+            	   if (values[3].equals("True")) {
+            		   keyName = values[1];
+            		   
+            	   }
+               }
+            	   
+            		   
+               
+               
+        	}
+        	
+        }
+        	catch (IOException e) {
+                e.printStackTrace();
+             
+            }
 		
+		if (htblColNameValue.get(keyName) !=null) {
+			Object key = htblColNameValue.get(keyName);
+			String keyValue = "";    
+	 		if(key instanceof Date) {  
+	 			DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");  
+	 			keyValue = dateFormat.format(key);  
+	 		}
+	 		else {
+	 			keyValue=key.toString();
+	 		}
+	 		try {
+	 			int pageIndex = binarySearchPage(strTableName,keyValue) ;
+				Object keyValueObject= stringConverter(keyValue,strTableName); //CONVERTS KEY STRING TO AN OBJECT TO BE COMPARABLE
+				int rowIndex = binarySearchRow(strTableName, pageIndex, keyValueObject);
+				//I FOUND THE KEY 
+				FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + pageIndex + ".class");
+				 ObjectInputStream in = new ObjectInputStream(fileIn) ;
+				 Page p = (Page) in.readObject();
+				 
+				
+				 p.getRows().remove(rowIndex);
+				 int numberofRows = p.getRows().size();
+				 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + pageIndex + ".class");
+			     ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			     out.writeObject(p);
+			     out.close();
+			     fileOut.close(); 
+			     fileIn.close();
+				 in.close();
+ 
+				 int latestPage = findLatestPage(strTableName);
+				 int originalPageIndex = pageIndex;
+        
+			     if (numberofRows==0) {	
+			    	 FileInputStream tableFileIn = new FileInputStream("src/resources/" + strTableName + "Table.class");
+					 ObjectInputStream tableIn = new ObjectInputStream(tableFileIn);
+					 Table t = (Table) tableIn.readObject();
+					 t.getPageDirectories().remove("src/resources/" + strTableName + p.getPageNumber() + ".class");
+					 FileOutputStream tablefileOut = new FileOutputStream("src/resources/" + strTableName + "Table.class");
+			            ObjectOutputStream tableout = new ObjectOutputStream(tablefileOut);
+			            tableout.writeObject(t);
+			            tableout.close();
+			            tablefileOut.close();
+			            tableFileIn.close();
+			            tableIn.close();
+					 
+			    	 Files.delete(Paths.get("src/resources/" + strTableName + originalPageIndex + ".class"));
+					  	 }   
+			     
+			   
+
+			     
+				 while (latestPage > pageIndex) {
+					//IF TRUE, IT MEANS WE HAVE TO DO THE PAGE SHIFTING 
+					 FileInputStream fileIn2 = new FileInputStream("src/resources/" + strTableName + (pageIndex+1) + ".class");
+					 ObjectInputStream in2 = new ObjectInputStream(fileIn2) ;
+					 Page p2 = (Page) in2.readObject(); 
+					 Row row = p2.getRows().get(0);
+					 p2.getRows().remove(0);
+					 FileOutputStream fileOut2 = new FileOutputStream("src/resources/" + strTableName + (pageIndex+1) + ".class");
+				        ObjectOutputStream out2 = new ObjectOutputStream(fileOut2);
+				        out2.writeObject(p2);
+				        out2.close();
+				        fileOut2.close();
+				        fileIn2.close();
+				        in2.close();
+					 if (p2.getRows().size()==0) {
+						 FileInputStream tableFileIn = new FileInputStream("src/resources/" + strTableName + "Table.class");
+						 ObjectInputStream tableIn = new ObjectInputStream(tableFileIn);
+						 Table t = (Table) tableIn.readObject();
+						 t.getPageDirectories().remove("src/resources/" + strTableName + p2.getPageNumber() + ".class");
+						 FileOutputStream tablefileOut = new FileOutputStream("src/resources/" + strTableName + "Table.class");
+				            ObjectOutputStream tableout = new ObjectOutputStream(tablefileOut);
+				            tableout.writeObject(t);
+				            tableout.close();
+				            tablefileOut.close();
+				            tableFileIn.close();
+				            tableIn.close();
+						 Files.delete(Paths.get("src/resources/" + strTableName + p2.getPageNumber()  + ".class"));
+						 
+					 }
+					 insertIntoTable(strTableName, row.getColNameValue());
+					
+					 pageIndex++;
+					 
+				 } 
+				  
+	 		}
+			catch(DBAppException app) {
+				app.printStackTrace();
+				
+				
+			}
+	 		catch(Exception e){
+	 			e.printStackTrace();
+	 		}
+		}
+		
+		//CASE 2: WE WANT TO DELETE MULTIPLE ROWS 
+		else {
+			int counter=1;
+			int latest = findLatestPage(strTableName);
+			if(latest==0)
+				return;
+			
+		
+				while(counter<=latest){
+					if(findLatestPage(strTableName)==0)
+						return;
+					try {
+						FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + counter + ".class");
+						 ObjectInputStream in = new ObjectInputStream(fileIn) ;
+						 Page p = (Page) in.readObject();
+						 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + counter + ".class");
+					        ObjectOutputStream out = new ObjectOutputStream(fileOut);
+					        out.writeObject(p);
+					        out.close();
+					        fileOut.close();  
+					        fileIn.close();
+					        in.close();
+					       
+						 for(Row row : p.getRows()) {
+							 String key = "";
+							 Enumeration<String> enumerator = htblColNameValue.keys();
+							 boolean conditionSatisfied = false;
+							 while (enumerator.hasMoreElements()) {
+					                key = enumerator.nextElement();
+					                if (row.getColNameValue().get(key).equals(htblColNameValue.get(key))) {
+					                	conditionSatisfied = true;
+					                	
+					                }
+					                else {
+					                	conditionSatisfied = false;
+					                	break;
+					                }
+					                	
+					                	
+							 }
+
+							 if(conditionSatisfied) {
+								
+								 
+								 counter=0;
+								 deleteFromTable(strTableName, row.getColNameValue());
+								 //break;
+								 
+							
+								 
+							 }
+						 }
+						 
+					        
+					}
+					catch(Exception e) {
+						
+					}
+					counter++;
+				}
+				
+		
+			
+		}
 		
 	}
 	
@@ -336,7 +809,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		
 	}  
  	
- 	public static void binarySearchInsert(String strTableName, Page p, Hashtable<String,Object> htblColNameValue, Object valueToCompareWith){
+ 	public static void binarySearchInsert(String strTableName, Page p, Hashtable<String,Object> htblColNameValue, Object valueToCompareWith) throws DBAppException{
  		String clusteringKey = p.getClusteringKey();
  		if(compare(valueToCompareWith,p.getRows().firstElement().getColNameValue().get(clusteringKey))<0) {
  			//shift down and insert at first slot
@@ -353,10 +826,15 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		int mid=(first + last)/2;
  		
  		while(first<=last) {
- 		if(compare(valueToCompareWith,p.getRows().get(mid).getColNameValue().get(clusteringKey))>0) {
+ 		if(p.getRows().size()>mid &&compare(valueToCompareWith,p.getRows().get(mid).getColNameValue().get(clusteringKey))>0) {
  			first = mid + 1;
- 		}else if((compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0) 
- 				||(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))<0 && compare(valueToCompareWith,p.getRows().get(mid-1).getColNameValue().get(clusteringKey))>0) ){
+ 			
+ 		}
+ 		else if(p.getRows().size()>mid &&(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0) ) {
+ 			throw new DBAppException("Cannot insert a value with a duplicate clustering key");
+ 		}
+ 		else if(p.getRows().size()>mid &&(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0) 
+ 				||p.getRows().size()>mid &&(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))<0 && compare(valueToCompareWith,p.getRows().get(mid-1).getColNameValue().get(clusteringKey))>0) ){
  			//we found the index, shift down then insert here.
  			Row row = new Row (p.getTableName()+p.getPageNumber(), htblColNameValue);
  			p.getRows().add(mid, row);
@@ -371,7 +849,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		}
  	}
  	
- 	public static int binarySearchPage(String strTableName, String key) throws IOException, ParseException, ClassNotFoundException {
+ 	public static int binarySearchPage(String strTableName, String key) throws IOException, ParseException, ClassNotFoundException, DBAppException {
  		
  		String type = "";
  		Object keyValue = null;
@@ -384,7 +862,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
         	while ((line = br.readLine()) != null) {
                String[] values = line.split(",");
                if (values[0].equals(strTableName))
-            	   if (values[3].equals("TRUE"))
+            	   if (values[3].equals("True"))
             		   type = values[2];
         	}
         }
@@ -416,10 +894,13 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			 File tmpDir = new File("src/resources/" + strTableName + counter + ".class"); 
 			 boolean exists = tmpDir. exists();
 			 if (exists==true) {
+			 
 		     FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + counter + ".class");
 		     try (ObjectInputStream in = new ObjectInputStream(fileIn)) {
-		    
+		    	 
 			 Page p = (Page) in.readObject();
+			 fileIn.close();
+	         in.close();
 			 String clusteringKey = p.getClusteringKey();
 			 if(p.getRows().size()==0) {
 				 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + counter + ".class");
@@ -427,18 +908,20 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		         out.writeObject(p);
 		         out.close();
 		         fileOut.close();
+		         
 		         counter++;
 			 }
 			 
 			 else {
 				 Object lastValueFromRows =p.getRows().lastElement().getColNameValue().get(clusteringKey);
-				 if(compare(keyValue,lastValueFromRows)>=0 ) {
+				 if(compare(keyValue,lastValueFromRows)>0 ) {
 					 
 					 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + counter + ".class");
 			         ObjectOutputStream out = new ObjectOutputStream(fileOut);
 			         out.writeObject(p);
 			         out.close();
 			         fileOut.close();
+			         
 					 counter++; 
 					 } 
 				
@@ -450,6 +933,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			         out.writeObject(p);
 			         out.close();
 			         fileOut.close();
+			        
 			         break;
 				 }
 				 
@@ -457,30 +941,40 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			 
 				 
 			 
-		 }
+		 }  //TRY 
 	   } 
+			 
 	}
 		
 		return pageIndex;
  }
 
- 	public static int binarySearchRow(String strTableName, int pageIndex, Object key) throws IOException, ClassNotFoundException {
+ 	public static int binarySearchRow(String strTableName, int pageIndex, Object key) throws IOException, ClassNotFoundException, DBAppException {
  		
  		 FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + pageIndex + ".class");
 		 ObjectInputStream in = new ObjectInputStream(fileIn) ;
 		 Page p = (Page) in.readObject();
+		 FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + pageIndex + ".class");
+	        ObjectOutputStream out = new ObjectOutputStream(fileOut);
+	        out.writeObject(p);
+	        out.close();
+	        fileOut.close();
+	        fileIn.close();
+	        in.close();
 		 int rowIndex =0;
  		String clusteringKey = p.getClusteringKey();
- 		//binary searching
+ 		
  		int first=0;
  		int last=p.getRows().size();
  		int mid=(first + last)/2;
+ 	
  		
  		while(first<=last) {
- 		if(compare(key,p.getRows().get(mid).getColNameValue().get(clusteringKey))>0) {
+ 		if(p.getRows().size()>mid && compare(key,p.getRows().get(mid).getColNameValue().get(clusteringKey))>0) {
  			first = mid + 1;
- 		}else if((compare(key, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0)){
+ 		}else if(p.getRows().size()>mid &&(compare(key, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0)){
  			rowIndex=mid;
+ 	
  			break;
  			
  		}else {
@@ -489,13 +983,14 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		    mid = (first + last)/2;
  		}	
  		
- 		FileOutputStream fileOut = new FileOutputStream("src/resources/" + strTableName + pageIndex + ".class");
-        ObjectOutputStream out = new ObjectOutputStream(fileOut);
-        out.writeObject(p);
-        out.close();
-        fileOut.close();
+ 		
+        
+       /* if (found == false) {
+        	throw new DBAppException("Row not found");
+        }*/
         return rowIndex;
  }
+ 	
  		
  	
  	public static Object stringConverter(String key, String table) throws ParseException {
@@ -509,7 +1004,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
         	while ((line = br.readLine()) != null) {
                String[] values = line.split(",");
                if (values[0].equals(table))
-            	   if (values[3].equals("TRUE"))
+            	   if (values[3].equals("True"))
             		   type = values[2];
         	}
         }
@@ -572,6 +1067,8 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		
  		return 0;
  	}
+ 	
+ 
 	
 	public static void main(String[] args) throws DBAppException, ClassNotFoundException, IOException, ParseException
     {
@@ -594,7 +1091,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		htblColNameMax.put("gpa", "10000");
 		dbApp.createTable( strTableName, "id", htblColNameType , htblColNameMin , htblColNameMax);   
 		
-		//DBApp dbApp = new DBApp( );
 		Hashtable htblColNameValue1 = new Hashtable();
 		htblColNameValue1.put("id", 1);
 		htblColNameValue1.put("name", "mina");
@@ -625,19 +1121,21 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		htblColNameValue5.put("gpa", 0); 
 		dbApp.insertIntoTable("Student", htblColNameValue5);  */
 		
+		//////////////////////////////////////////////////////////////////////////
+		
 	  /*  DBApp dbApp = new DBApp( );
 		Hashtable htblColNameValue6 = new Hashtable();
 		htblColNameValue6.put("id", 4);
 		htblColNameValue6.put("name", "mina");
 		htblColNameValue6.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue6); */
+		dbApp.insertIntoTable("Student", htblColNameValue6); 
 		
 		
 		
-/*	 try {
+	/* try {
 		 
 			FileInputStream fileIn;
-			fileIn = new FileInputStream("src/resources/Student2.class");
+			fileIn = new FileInputStream("src/resources/Student1.class");
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 	         Page p = (Page) in.readObject();
 	         in.close();
@@ -647,19 +1145,18 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}    
-		*/
+		}     */
 		
 
-		DBApp dbApp = new DBApp( );
+	/*	DBApp dbApp = new DBApp( );
 		Hashtable htblColNameValue6 = new Hashtable();
 		htblColNameValue6.put("name", "rawanz");
 		htblColNameValue6.put("gpa", 1); 
-		//dbApp.updateTable("Student", "1",htblColNameValue6 );
-		//System.out.println(htblColNameValue6);
+		dbApp.updateTable("Student", "1",htblColNameValue6 );
+		System.out.println(htblColNameValue6); */
 		
 		
-		 try {
+	/*	 try {
 			 
 				FileInputStream fileIn;
 				fileIn = new FileInputStream("src/resources/Student2.class");
@@ -672,13 +1169,59 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}  
-	 
-	  
+			}  */
 		
-		  
+		
+		//DELETE OR INSERT A STUDENT 
+	    DBApp dbApp = new DBApp( );
+		Hashtable htblColNameValue7 = new Hashtable();
+		//htblColNameValue7.put("id",3 );
+		htblColNameValue7.put("name", "mina");
+		htblColNameValue7.put("gpa", 0); 
+		//dbApp.insertIntoTable("Student", htblColNameValue7);
+	    dbApp.deleteFromTable("Student", htblColNameValue7);     
+	    
+		
+/*		DBApp dbApp = new DBApp( );
+	    Hashtable htblColNameValue1 = new Hashtable();
+		htblColNameValue1.put("id", 1);
+		htblColNameValue1.put("name", "mina");
+		htblColNameValue1.put("gpa", 0); 
+		dbApp.insertIntoTable("Student", htblColNameValue1);
+		
+		Hashtable htblColNameValue2 = new Hashtable();
+		htblColNameValue2.put("id", 2);
+		htblColNameValue2.put("name", "mina");
+		htblColNameValue2.put("gpa", 0); 
+		dbApp.insertIntoTable("Student", htblColNameValue2);
+		
+		Hashtable htblColNameValue3 = new Hashtable();
+		htblColNameValue3.put("id", 3);
+		htblColNameValue3.put("name", "mina");
+		htblColNameValue3.put("gpa", 0); 
+		dbApp.insertIntoTable("Student", htblColNameValue3);*/
+	    
+	    
+		 try {
+			 
+				FileInputStream fileIn;
+				fileIn = new FileInputStream("src/resources/Student1.class");
+				ObjectInputStream in = new ObjectInputStream(fileIn);
+		         Page p = (Page) in.readObject();
+		         in.close();
+		         fileIn.close();
+		         System.out.println(p.getRows());
+		         
+		         
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  
 		
 	
+		 
+		
+		
 		
 		
     }

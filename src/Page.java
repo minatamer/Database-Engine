@@ -23,6 +23,7 @@ public class Page implements java.io.Serializable  {
 		this.htblColNameMax = htblColNameMax;
 		rows = new Vector<Row>();
 	}
+	
 
 
 	public int getPageNumber() {
