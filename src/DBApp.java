@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -75,11 +76,12 @@ public class DBApp  {
 		
 		//ADD VALUES TO METADATA.CSV IF TABLE DOES NOT ALREADY EXIST
         try {
-        	FileWriter csvWriter = new FileWriter("src/metadata.csv");
+        	FileWriter csvWriter = new FileWriter("src/metadata.csv", true);
         	Enumeration<String> enumerator = htblColNameType.keys();
         	while (enumerator.hasMoreElements()) {
         		 
                 String key = enumerator.nextElement();
+                
                
                 	csvWriter.append(strTableName).append(",");
                 	csvWriter.append(key).append(",");
@@ -219,8 +221,8 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
             		throw new DBAppException(key + " has a wrong type");
             	
             	Date d = (Date) o;
-            	Date minDate=new SimpleDateFormat("YYYY-MM-DD").parse(min);  
-            	Date maxDate=new SimpleDateFormat("YYYY-MM-DD").parse(max);  
+            	Date minDate=new SimpleDateFormat("yyyy-MM-dd").parse(min);  
+            	Date maxDate=new SimpleDateFormat("yyyy-MM-dd").parse(max);  
             	if(d.compareTo(minDate)<0)
             		throw new DBAppException(key + " is smaller than the Minimum requirement");
             	if(d.compareTo(maxDate)>0)
@@ -486,8 +488,8 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
          		throw new DBAppException("The clustering key has a wrong type");
          	
          	Date d = (Date) keyValue2;
-         	Date minDate=new SimpleDateFormat("YYYY-MM-DD").parse(primaryKeyMin);  
-         	Date maxDate=new SimpleDateFormat("YYYY-MM-DD").parse(primaryKeyMax);  
+         	Date minDate=new SimpleDateFormat("yyyy-MM-dd").parse(primaryKeyMin);  
+         	Date maxDate=new SimpleDateFormat("yyyy-MM-dd").parse(primaryKeyMax);  
          	if(d.compareTo(minDate)<0)
          		throw new DBAppException("The clustering key is smaller than the Minimum requirement");
          	if(d.compareTo(maxDate)>0)
@@ -542,8 +544,8 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 	            		throw new DBAppException(key + " has a wrong type");
 	            	
 	            	Date d = (Date) o;
-	            	Date minDate=new SimpleDateFormat("YYYY-MM-DD").parse(min);  
-	            	Date maxDate=new SimpleDateFormat("YYYY-MM-DD").parse(max);  
+	            	Date minDate=new SimpleDateFormat("yyyy-MM-dd").parse(min);  
+	            	Date maxDate=new SimpleDateFormat("yyyy-MM-dd").parse(max);  
 	            	if(d.compareTo(minDate)<0)
 	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
 	            	if(d.compareTo(maxDate)>0)
@@ -627,7 +629,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			Object key = htblColNameValue.get(keyName);
 			String keyValue = "";    
 	 		if(key instanceof Date) {  
-	 			DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD");  
+	 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
 	 			keyValue = dateFormat.format(key);  
 	 		}
 	 		else {
@@ -832,6 +834,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		}
  		else if(p.getRows().size()>mid &&(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0) ) {
  			throw new DBAppException("Cannot insert a value with a duplicate clustering key");
+ 			
  		}
  		else if(p.getRows().size()>mid &&(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))==0) 
  				||p.getRows().size()>mid &&(compare(valueToCompareWith, p.getRows().get(mid).getColNameValue().get(clusteringKey))<0 && compare(valueToCompareWith,p.getRows().get(mid-1).getColNameValue().get(clusteringKey))>0) ){
@@ -878,7 +881,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		}
  		else
  		if(type.equals("java.util.Date")) {
- 			Date date1=new SimpleDateFormat("YYYY-MM-DD").parse(key);  
+ 			Date date1=new SimpleDateFormat("yyyy-MM-dd").parse(key);  
  			keyValue = date1;
  		}
  		else{
@@ -943,7 +946,9 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			 
 		 }  //TRY 
 	   } 
-			 
+			 else {
+				 throw new DBAppException("Row does not exist");
+			 }
 	}
 		
 		return pageIndex;
@@ -984,10 +989,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		}	
  		
  		
-        
-       /* if (found == false) {
-        	throw new DBAppException("Row not found");
-        }*/
         return rowIndex;
  }
  	
@@ -1020,7 +1021,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		}
  		else
  		if(type.equals("java.util.Date")) {
- 			Date date1=new SimpleDateFormat("YYYY-MM-DD").parse(key);  
+ 			Date date1=new SimpleDateFormat("yyyy-MM-dd").parse(key);  
  			keyValue = date1;
  		}
  		else{
@@ -1060,6 +1061,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		}
  			     
  		if(o1 instanceof Date) {
+ 		
  			Date num1 = (Date) o1;
  			Date num2 = (Date) o2;
  			return num1.compareTo(num2);
@@ -1068,141 +1070,14 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		return 0;
  	}
  	
- 
+ 	
+
 	
 	public static void main(String[] args) throws DBAppException, ClassNotFoundException, IOException, ParseException
     {
   
-	/*	String strTableName = "Student";
-		DBApp dbApp = new DBApp( );
-		Hashtable htblColNameType = new Hashtable( );
-		htblColNameType.put("id", "java.lang.Integer");
-		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("gpa", "java.lang.double");
-		
-		Hashtable htblColNameMin = new Hashtable( );
-		htblColNameMin.put("id", "0");
-		htblColNameMin.put("name", "Z");
-		htblColNameMin.put("gpa", "0");
-		
-		Hashtable htblColNameMax = new Hashtable( );
-		htblColNameMax.put("id", "10000");
-		htblColNameMax.put("name",  "ZZZZZZZZZZZ");
-		htblColNameMax.put("gpa", "10000");
-		dbApp.createTable( strTableName, "id", htblColNameType , htblColNameMin , htblColNameMax);   
-		
-		Hashtable htblColNameValue1 = new Hashtable();
-		htblColNameValue1.put("id", 1);
-		htblColNameValue1.put("name", "mina");
-		htblColNameValue1.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue1);
-		
-		Hashtable htblColNameValue2 = new Hashtable();
-		htblColNameValue2.put("id", 2);
-		htblColNameValue2.put("name", "mina");
-		htblColNameValue2.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue2);
-		
-		Hashtable htblColNameValue3 = new Hashtable();
-		htblColNameValue3.put("id", 3);
-		htblColNameValue3.put("name", "mina");
-		htblColNameValue3.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue3);
-		
-		Hashtable htblColNameValue4 = new Hashtable();
-		htblColNameValue4.put("id", 4);
-		htblColNameValue4.put("name", "mina");
-		htblColNameValue4.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue4);
-		
-		Hashtable htblColNameValue5 = new Hashtable();
-		htblColNameValue5.put("id", 5);
-		htblColNameValue5.put("name", "mina");
-		htblColNameValue5.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue5);  */
-		
-		//////////////////////////////////////////////////////////////////////////
-		
-	  /*  DBApp dbApp = new DBApp( );
-		Hashtable htblColNameValue6 = new Hashtable();
-		htblColNameValue6.put("id", 4);
-		htblColNameValue6.put("name", "mina");
-		htblColNameValue6.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue6); 
-		
-		
-		
-	/* try {
-		 
-			FileInputStream fileIn;
-			fileIn = new FileInputStream("src/resources/Student1.class");
-			ObjectInputStream in = new ObjectInputStream(fileIn);
-	         Page p = (Page) in.readObject();
-	         in.close();
-	         fileIn.close();
-	         System.out.println(p.getRows()); 
-	         
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}     */
-		
 
-	/*	DBApp dbApp = new DBApp( );
-		Hashtable htblColNameValue6 = new Hashtable();
-		htblColNameValue6.put("name", "rawanz");
-		htblColNameValue6.put("gpa", 1); 
-		dbApp.updateTable("Student", "1",htblColNameValue6 );
-		System.out.println(htblColNameValue6); */
-		
-		
 	/*	 try {
-			 
-				FileInputStream fileIn;
-				fileIn = new FileInputStream("src/resources/Student2.class");
-				ObjectInputStream in = new ObjectInputStream(fileIn);
-		         Page p = (Page) in.readObject();
-		         in.close();
-		         fileIn.close();
-		         System.out.println(p.getRows()); 
-		         
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}  */
-		
-		
-		//DELETE OR INSERT A STUDENT 
-	    DBApp dbApp = new DBApp( );
-		Hashtable htblColNameValue7 = new Hashtable();
-		//htblColNameValue7.put("id",3 );
-		htblColNameValue7.put("name", "mina");
-		htblColNameValue7.put("gpa", 0); 
-		//dbApp.insertIntoTable("Student", htblColNameValue7);
-	    dbApp.deleteFromTable("Student", htblColNameValue7);     
-	    
-		
-/*		DBApp dbApp = new DBApp( );
-	    Hashtable htblColNameValue1 = new Hashtable();
-		htblColNameValue1.put("id", 1);
-		htblColNameValue1.put("name", "mina");
-		htblColNameValue1.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue1);
-		
-		Hashtable htblColNameValue2 = new Hashtable();
-		htblColNameValue2.put("id", 2);
-		htblColNameValue2.put("name", "mina");
-		htblColNameValue2.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue2);
-		
-		Hashtable htblColNameValue3 = new Hashtable();
-		htblColNameValue3.put("id", 3);
-		htblColNameValue3.put("name", "mina");
-		htblColNameValue3.put("gpa", 0); 
-		dbApp.insertIntoTable("Student", htblColNameValue3);*/
-	    
-	    
-		 try {
 			 
 				FileInputStream fileIn;
 				fileIn = new FileInputStream("src/resources/Student1.class");
@@ -1219,7 +1094,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			}  
 		
 	
-		 
+	*/ 
 		
 		
 		

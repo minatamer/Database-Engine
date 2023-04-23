@@ -1,3 +1,7 @@
 Student,gpa,java.lang.double,False,null,null,0,10000
 Student,name,java.lang.String,False,null,null,Z,ZZZZZZZZZZZ
 Student,id,java.lang.Integer,True,null,null,0,10000
+Matches,date,java.util.Date,True,null,null,0-0-0,9999-12-31
+Matches,away,java.lang.String,False,null,null,Z,ZZZZZZZZZZZ
+Matches,home,java.lang.String,False,null,null,Z,ZZZZZZZZZZZ
+Alphabet,letter,java.lang.String,True,null,null,Z,ZZZZZZZZZZ
