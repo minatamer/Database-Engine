@@ -78,11 +78,45 @@ public class DBApp  {
         try {
         	FileWriter csvWriter = new FileWriter("src/metadata.csv", true);
         	Enumeration<String> enumerator = htblColNameType.keys();
+        	
+        	  //VALIDATING DATA INPUTS
         	while (enumerator.hasMoreElements()) {
         		 
                 String key = enumerator.nextElement();
-                
-               
+              
+                try {
+                	if (htblColNameType.get(key).equals("java.lang.Integer")) {
+                		int temp = Integer.parseInt(htblColNameMin.get(key));
+                    	int temp2 = Integer.parseInt(htblColNameMax.get(key));
+                    	if (temp>temp2)
+                    		throw new DBAppException();
+                		
+                	}
+                	
+                	else if (htblColNameType.get(key).equals("java.lang.Double")) {
+                		double temp = Double.parseDouble(htblColNameMin.get(key));
+                    	double temp2 = Double.parseDouble(htblColNameMax.get(key));
+                    	if (temp>temp2)
+                    		throw new DBAppException();
+                	}
+                	
+                	else if (htblColNameType.get(key).equals("java.util.Date")) {
+                		Date temp = new SimpleDateFormat("yyyy-MM-dd").parse(htblColNameMin.get(key));
+                		Date temp2 = new SimpleDateFormat("yyyy-MM-dd").parse(htblColNameMax.get(key));
+                		if (temp.compareTo(temp2)>0)
+                    		throw new DBAppException();
+                	}
+                	
+                	
+                }
+                catch(Exception ex) {
+                	             	
+                	throw new DBAppException("Invalid data input");
+                }
+        	}  
+        	enumerator = htblColNameType.keys();
+        	while (enumerator.hasMoreElements()) {
+        		String key = enumerator.nextElement();
                 	csvWriter.append(strTableName).append(",");
                 	csvWriter.append(key).append(",");
                 	csvWriter.append(htblColNameType.get(key)).append(",");
@@ -177,57 +211,67 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		 throw new DBAppException("Cannot insert a tuple without a clustering key");
 	 Enumeration<String> enumerator = htblColNameValue.keys();
 	 while (enumerator.hasMoreElements()) {
-            String key = enumerator.nextElement();
-            Object o = htblColNameValue.get(key);
-            String min = hashtableMin.get(key);
-            String max = hashtableMax.get(key);
-            
-            String type = hashtableColumns.get(key);
-            if(type.equals("java.lang.Integer")) {
-            	if (!(o instanceof Integer))
-            		throw new DBAppException(key + " has a wrong type");
-            	
-            	int num = (Integer) o;
-            	if(num < Integer.parseInt(min))
-            		throw new DBAppException(key + " is smaller than the Minimum requirement");
-            	if(num > Integer.parseInt(max))
-            		throw new DBAppException(key + " is bigger than the Maximum requirement");
-            }
-            
-            if(type.equals("java.lang.Double")) {
-            	if (!(o instanceof Double))
-            		throw new DBAppException(key + " has a wrong type");
-            	
-            	double num = (Double) o;
-            	if(num < Double.parseDouble(min))
-            		throw new DBAppException(key + " is smaller than the Minimum requirement");
-            	if(num > Double.parseDouble(max))
-            		throw new DBAppException(key + " is bigger than the Maximum requirement");
-            }
-            
-            if(type.equals("java.lang.String")) {
-            	if (!(o instanceof String))
-            		throw new DBAppException(key + " has a wrong type");
-            	
-            	String s = (String) o;
-            	if(s.length()<min.length())
-            		throw new DBAppException(key + " is smaller than the Minimum requirement");
-            	if(s.length() > max.length())
-            		throw new DBAppException(key + " is bigger than the Maximum requirement");
-            }
-            
-            if(type.equals("java.util.Date")) {
-            	if (!(o instanceof Date))
-            		throw new DBAppException(key + " has a wrong type");
-            	
-            	Date d = (Date) o;
-            	Date minDate=new SimpleDateFormat("yyyy-MM-dd").parse(min);  
-            	Date maxDate=new SimpleDateFormat("yyyy-MM-dd").parse(max);  
-            	if(d.compareTo(minDate)<0)
-            		throw new DBAppException(key + " is smaller than the Minimum requirement");
-            	if(d.compareTo(maxDate)>0)
-            		throw new DBAppException(key + " is bigger than the Maximum requirement");
-            }
+		 
+		 try {
+			 
+			 String key = enumerator.nextElement();
+	            Object o = htblColNameValue.get(key);
+	            String min = hashtableMin.get(key);
+	            String max = hashtableMax.get(key);
+	            
+	            String type = hashtableColumns.get(key);
+	            if(type.equals("java.lang.Integer")) {
+	            	if (!(o instanceof Integer))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	int num = (Integer) o;
+	            	if(num < Integer.parseInt(min))
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(num > Integer.parseInt(max))
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            
+	            if(type.equals("java.lang.Double")) {
+	            	if (!(o instanceof Double))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	double num = (Double) o;
+	            	if(num < Double.parseDouble(min))
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(num > Double.parseDouble(max))
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            
+	            if(type.equals("java.lang.String")) {
+	            	if (!(o instanceof String))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	String s = (String) o;
+	            	if(s.length()<min.length())
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(s.length() > max.length())
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+	            
+	            if(type.equals("java.util.Date")) {
+	            	if (!(o instanceof Date))
+	            		throw new DBAppException(key + " has a wrong type");
+	            	
+	            	Date d = (Date) o;
+	            	Date minDate=new SimpleDateFormat("yyyy-MM-dd").parse(min);  
+	            	Date maxDate=new SimpleDateFormat("yyyy-MM-dd").parse(max);  
+	            	if(d.compareTo(minDate)<0)
+	            		throw new DBAppException(key + " is smaller than the Minimum requirement");
+	            	if(d.compareTo(maxDate)>0)
+	            		throw new DBAppException(key + " is bigger than the Maximum requirement");
+	            }
+			 
+		 }
+		 catch(Exception ex){
+			 throw new DBAppException ("Invalid Data");
+			 
+		 }
+           
             	
             
    
@@ -1075,29 +1119,8 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 	
 	public static void main(String[] args) throws DBAppException, ClassNotFoundException, IOException, ParseException
     {
-  
-
-	/*	 try {
-			 
-				FileInputStream fileIn;
-				fileIn = new FileInputStream("src/resources/Student1.class");
-				ObjectInputStream in = new ObjectInputStream(fileIn);
-		         Page p = (Page) in.readObject();
-		         in.close();
-		         fileIn.close();
-		         System.out.println(p.getRows());
-		         
-		         
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}  
-		
+		DBApp dbApp = new DBApp();
 	
-	*/ 
-		
-		
-		
 		
     }
 	
