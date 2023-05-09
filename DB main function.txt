@@ -1,0 +1,76 @@
+String strTableName = "Matches";
+		DBApp dbApp = new DBApp( );
+		Hashtable htblColNameType = new Hashtable( );
+		htblColNameType.put("date", "java.util.Date");
+		htblColNameType.put("home", "java.lang.String");
+		htblColNameType.put("away", "java.lang.String");
+		
+		Hashtable htblColNameMin = new Hashtable( );
+		htblColNameMin.put("date", "0-0-0");
+		htblColNameMin.put("home", "Z");
+		htblColNameMin.put("away", "Z");
+		
+		Hashtable htblColNameMax = new Hashtable( );
+		htblColNameMax.put("date", "9999-12-31");
+		htblColNameMax.put("home",  "ZZZZZZZZZZZ");
+		htblColNameMax.put("away", "ZZZZZZZZZZZ");
+		dbApp.createTable( strTableName, "date", htblColNameType , htblColNameMin , htblColNameMax);  
+
+
+String strTableName = "Student";
+		DBApp dbApp = new DBApp( );
+		Hashtable htblColNameType = new Hashtable( );
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("gpa", "java.lang.double");
+		
+		Hashtable htblColNameMin = new Hashtable( );
+		htblColNameMin.put("id", "0");
+		htblColNameMin.put("name", "Z");
+		htblColNameMin.put("gpa", "0");
+		
+		Hashtable htblColNameMax = new Hashtable( );
+		htblColNameMax.put("id", "10000");
+		htblColNameMax.put("name",  "ZZZZZZZZZZZ");
+		htblColNameMax.put("gpa", "10000");
+		dbApp.createTable( strTableName, "id", htblColNameType , htblColNameMin , htblColNameMax);   
+		
+
+
+
+    
+		 try {
+			 
+			 FileInputStream fileIn;
+			 fileIn = new FileInputStream("src/resources/----insert test page name here---.class");
+		         ObjectInputStream in = new ObjectInputStream(fileIn);
+		         Page p = (Page) in.readObject();
+		         in.close();
+		         fileIn.close();
+		         System.out.println(p.getRows());
+		         
+		         
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  
+
+
+	String strTableName = "Alphabet";
+		DBApp dbApp = new DBApp( );
+		Hashtable htblColNameType = new Hashtable( );
+		htblColNameType.put("letter", "java.lang.String");
+		
+		Hashtable htblColNameMin = new Hashtable( );
+		htblColNameMin.put("letter", "Z");
+		
+		Hashtable htblColNameMax = new Hashtable( );
+		htblColNameMax.put("letter", "ZZZZZZZZZZ");
+		dbApp.createTable( strTableName, "letter", htblColNameType , htblColNameMin , htblColNameMax);   
+		
+		
+		
+		
+
+// HOW TO MAKE A DATE, FOR EXAMPLE: 
+// Date date = new SimpleDateFormat("yyyy-MM-dd").parse("2023-05-27");  
