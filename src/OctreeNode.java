@@ -16,7 +16,7 @@ public class OctreeNode implements java.io.Serializable {
       private Object yMax;
       private Object zMax;
       private ArrayList<OctreePoint> points;
-      private OctreeNode[] children;
+      private ArrayList<OctreeNode> children;
       private int maximumEntriesinOctreeNode ;
 
       
@@ -29,7 +29,7 @@ public class OctreeNode implements java.io.Serializable {
           this.zMax = zMax;
           this.maximumEntriesinOctreeNode = maximumEntriesinOctreeNode;
           this.points = new ArrayList<OctreePoint>();
-          this.children = new OctreeNode[8];
+          this.children = new ArrayList<OctreeNode>();
       }
 
       
@@ -103,14 +103,16 @@ public class OctreeNode implements java.io.Serializable {
 	}
 
 
-	public OctreeNode[] getChildren() {
+	public ArrayList<OctreeNode> getChildren() {
 		return children;
 	}
 
 
-	public void setChildren(OctreeNode[] children) {
+	public void setChildren(ArrayList<OctreeNode> children) {
 		this.children = children;
 	}
+
+	
 
 
 	public int getMaximumEntriesinOctreeNode() {
@@ -118,20 +120,22 @@ public class OctreeNode implements java.io.Serializable {
 	}
 
 
+	
+
 	public void setMaximumEntriesinOctreeNode(int maximumEntriesinOctreeNode) {
 		this.maximumEntriesinOctreeNode = maximumEntriesinOctreeNode;
 	}
 
 
 	public void addPoint(OctreePoint point) throws ParseException {
-          if (children[0] == null && points.size() < maximumEntriesinOctreeNode) {
+          if (children.size()==0 && points.size() < maximumEntriesinOctreeNode) {
               points.add(point);
           } else {
-              if (children[0] == null) {
+              if (children.size()==0 ) {
                   subdivide();
               }
               int index = getIndex(point);
-              children[index].addPoint(point);
+              children.get(index).addPoint(point);
           }
       }
       
@@ -140,18 +144,19 @@ public class OctreeNode implements java.io.Serializable {
     	  	Object xMid = getMid(xMin, xMax);
     	  	Object yMid = getMid(yMin, yMax);
   	    	Object zMid = getMid(zMin, zMax);
-    	    
-    	    children[0] = new OctreeNode(xMin, yMin, zMin, xMid, yMid, zMid, maximumEntriesinOctreeNode);
-    	    children[1] = new OctreeNode(xMid, yMin, zMin, xMax, yMid, zMid, maximumEntriesinOctreeNode);
-    	    children[2] = new OctreeNode(xMin, yMid, zMin, xMid, yMax, zMid, maximumEntriesinOctreeNode);
-    	    children[3] = new OctreeNode(xMid, yMid, zMin, xMax, yMax, zMid, maximumEntriesinOctreeNode);
-    	    children[4] = new OctreeNode(xMin, yMin, zMid, xMid, yMid, zMax, maximumEntriesinOctreeNode);
-    	    children[5] = new OctreeNode(xMid, yMin, zMid, xMax, yMid, zMax, maximumEntriesinOctreeNode);
-    	    children[6] = new OctreeNode(xMin, yMid, zMid, xMid, yMax, zMax, maximumEntriesinOctreeNode);
-    	    children[7] = new OctreeNode(xMid, yMid, zMid, xMax, yMax, zMax, maximumEntriesinOctreeNode);
+  	    	 	    	
+  	    	children.add(0, new OctreeNode(xMin, yMin, zMin, xMid, yMid, zMid, maximumEntriesinOctreeNode)); 
+    	    children.add(1,new OctreeNode(xMid, yMin, zMin, xMax, yMid, zMid, maximumEntriesinOctreeNode)); 
+    	    children.add(2, new OctreeNode(xMin, yMid, zMin, xMid, yMax, zMid, maximumEntriesinOctreeNode)); 
+    	    children.add(3,new OctreeNode(xMid, yMid, zMin, xMax, yMax, zMid, maximumEntriesinOctreeNode)); 
+    	    children.add(4, new OctreeNode(xMin, yMin, zMid, xMid, yMid, zMax, maximumEntriesinOctreeNode));
+    	    children.add(5, new OctreeNode(xMid, yMin, zMid, xMax, yMid, zMax, maximumEntriesinOctreeNode));
+    	    children.add(6, new OctreeNode(xMin, yMid, zMid, xMid, yMax, zMax, maximumEntriesinOctreeNode));
+    	    children.add(7, new OctreeNode(xMid, yMid, zMid, xMax, yMax, zMax, maximumEntriesinOctreeNode)); 
+  	    	
     	    for (OctreePoint point : points) {
     	        int index = getIndex(point);
-    	        children[index].addPoint(point);
+    	        children.get(index).addPoint(point);
     	    }
     	    points.clear();
     	}
@@ -202,12 +207,21 @@ public class OctreeNode implements java.io.Serializable {
     	        return returnDate;
     	  }
     	  else {
-    		    int combinedLength = ((String) min).length() + ((String) max).length();
-    	        int middle = combinedLength / 2;
-    	        if (combinedLength % 2 == 0) 
-    	           return ((String) min).substring(((String) min).length() - middle) + ((String) max).substring(0, middle) ;
-    	        else
-    	           return ((String) min).substring(((String) min).length() - middle - 1, ((String) min).length() - middle) + ((String) max).substring(middle, middle + 1) + ((String) max).substring(0, middle);
+    		/*  String mid="";
+    		  String minString=((String) min).toLowerCase();
+    		  String maxString=((String) max).toLowerCase();
+    		  int midStringLength = ((minString.length()+(maxString.length())/2));
+    			for(int i=0;i<Integer.min(minString.length(),maxString.length());i++) {
+    				mid+=(char)((((CharSequence) minString).charAt(i)+((CharSequence) maxString).charAt(i))/2);
+    				}
+    			for(int i=0;i<Integer.max((minString.length()),(maxString.length())-midStringLength);i++) {
+    				mid+="z";
+    				}
+    			return mid; */
+    		  String minString=(String) min;
+    		  String maxString=(String) max;
+    		  return getMiddleString(minString, maxString);
+    		  
     	  }
     		  
       }
@@ -238,6 +252,12 @@ public class OctreeNode implements java.io.Serializable {
    		if(o1 instanceof String) {
    			String num1 = (String) o1;
    			String num2 = (String) o2;
+   			if(num1.length()>num2.length()) {
+   				return 1;
+   				}
+   			if(num1.length()<num2.length()) {
+   				return -1;
+   				}
    			return num1.compareTo(num2);
    		}
    			     
@@ -250,4 +270,66 @@ public class OctreeNode implements java.io.Serializable {
    		
    		return 0;
    	}
-}
+      
+    	
+      
+      public static String getMiddleString(String S, String T)
+      {
+    	  S=S.toLowerCase();
+    	  T=T.toLowerCase();
+          // Calculate the average length of the two strings
+          int avgLen = (S.length() + T.length()) / 2;
+          int N = avgLen;
+          String result="";
+   
+          // Pad the strings with 'a' characters so that they have the same length
+          while (S.length() < avgLen) {
+              S = S + 'a';
+          }
+          while (T.length() < avgLen) {
+              T = T + 'a';
+          }
+   
+          // Stores the base 26 digits after addition
+          int[] a1 = new int[N + 1];
+   
+          for (int i = 0; i < N; i++) {
+              a1[i + 1] = (int)S.charAt(i) - 97
+                          + (int)T.charAt(i) - 97;
+          }
+   
+          // Iterate from right to left
+          // and add carry to next position
+          for (int i = N; i >= 1; i--) {
+              a1[i - 1] += (int)a1[i] / 26;
+              a1[i] %= 26;
+          }
+   
+          // Reduce the number to find the middle
+          // string by dividing each position by 2
+          for (int i = 0; i <= N; i++) {
+   
+              // If current value is odd,
+              // carry 26 to the next index value
+              if ((a1[i] & 1) != 0) {
+   
+                  if (i + 1 <= N) {
+                      a1[i + 1] += 26;
+                  }
+              }
+   
+              a1[i] = (int)a1[i] / 2;
+          }
+   
+          for (int i = 1; i <= N; i++) {
+              result+=(char)(a1[i] + 97);
+          }
+          
+          return result;
+      }
+      
+    	  
+      }
+      
+      
+      

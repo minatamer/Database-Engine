@@ -1,0 +1,32 @@
+	/*	SQLTerm[] arrSQLTerms = new SQLTerm[4]; 
+		SQLTerm term1 = new SQLTerm ("Student", "gpa" , ">" , 1.5);
+		arrSQLTerms[0] = term1;
+		
+		SQLTerm term2 = new SQLTerm ("Student", "id" , "<" , 7);
+		
+		arrSQLTerms[1] = term2;
+		
+		SQLTerm term3 = new SQLTerm ("Student", "id" , ">" , 4);
+		
+		arrSQLTerms[2] = term3;
+		
+		SQLTerm term4 = new SQLTerm ("Student", "name" , "<" , "mohamed");
+		
+		arrSQLTerms[3] = term4;
+		
+		
+		
+		String[]strarrOperators = new String[3];
+		strarrOperators[0] = "OR"; 
+		strarrOperators[1] = "XOR"; 
+		strarrOperators[2] = "AND";  
+		
+		
+
+		
+		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms , strarrOperators); 
+		
+		while (resultSet.hasNext()) {
+		    Row row = (Row) resultSet.next();
+		    System.out.println(row);
+		}  */

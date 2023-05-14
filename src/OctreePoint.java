@@ -1,5 +1,6 @@
 public class OctreePoint implements java.io.Serializable {
-    private Object x;
+	private static final long serialVersionUID = -2375267312200975917L;
+	private Object x;
     private Object y;
     private Object z;
     private Page page;
@@ -33,6 +34,13 @@ public class OctreePoint implements java.io.Serializable {
 	public void setPage(Page page) {
 		this.page = page;
 	}
+	@Override
+	public String toString() {
+	
+		return (this.getX().toString() + " , " + this.getY() + " , " + this.getZ().toString());
+	}
+	
+	
 
 
 }

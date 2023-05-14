@@ -1,5 +1,6 @@
 public class OctreeIndex implements java.io.Serializable {
-    private OctreeNode root;
+	private static final long serialVersionUID = -4178818102103328482L;
+	private OctreeNode root;
     private String col1;
     private String col2;
     private String col3;
@@ -43,6 +44,22 @@ public class OctreeIndex implements java.io.Serializable {
 		this.col3 = col3;
 	}
 
+	
+	public void printAllPoints() {
+	    printAllPoints(root);
+	}
+
+	public void printAllPoints(OctreeNode node) {
+	    if (node.getChildren().size()==0) {
+	        for (OctreePoint point : node.getPoints()) {
+	            System.out.println(point.toString());
+	        }
+	    } else {
+	        for (OctreeNode child : node.getChildren()) {
+	            printAllPoints(child);
+	        }
+	    }
+	}
 	
     
    

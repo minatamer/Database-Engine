@@ -1,4 +1,4 @@
 
-Student,gpa,java.lang.double,False,null,null,0,10000
-Student,name,java.lang.String,False,null,null,Z,ZZZZZZZZZZZ
-Student,id,java.lang.Integer,True,null,null,0,10000
+Student,gpa,java.lang.Double,FALSE,idgpanameIndex,Octree,0.7,4
+Student,name,java.lang.String,FALSE,idgpanameIndex,Octree,AAA,ZZZZZZZZZZ
+Student,id,java.lang.Integer,TRUE,idgpanameIndex,Octree,0,30

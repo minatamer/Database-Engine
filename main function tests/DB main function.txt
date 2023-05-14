@@ -22,7 +22,7 @@ String strTableName = "Student";
 		Hashtable htblColNameType = new Hashtable( );
 		htblColNameType.put("id", "java.lang.Integer");
 		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("gpa", "java.lang.double");
+		htblColNameType.put("gpa", "java.lang.Double");
 		
 		Hashtable htblColNameMin = new Hashtable( );
 		htblColNameMin.put("id", "0");
