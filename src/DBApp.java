@@ -546,12 +546,14 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		 
 
 		 int numOfIndices = findLatestIndex(strTableName);
+		 Object keyValue= stringConverter(strClusteringKeyValue,strTableName); //CONVERTS KEY STRING TO AN OBJECT TO BE COMPARABLE 
+		 htblColNameValue.put(primaryKey, keyValue);
 		 ArrayList<OctreePoint> oldValuePoints= getOldValuePoints(strTableName, strClusteringKeyValue);
 		 ArrayList<OctreePoint> newValuePoints= createOctreePoints(strTableName, htblColNameValue);
-		 Object keyValue= stringConverter(strClusteringKeyValue,strTableName); //CONVERTS KEY STRING TO AN OBJECT TO BE COMPARABLE 
+		 
 		 
 		 //PUT THE CLUSTERING KEY IN THE POINT 
-		 newValuePoints.get(0).setX(keyValue);
+		 
 		 int pageIndex =1;
 		 
 		 if(numOfIndices!=0) { //this means that there are indices ,, get page index using index and update index aswell
@@ -562,9 +564,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 		 
 		 
 		//UPDATE TABLE
-	    //int pageIndex =0; 
-	    //pageIndex = searchForPage(strTableName,strClusteringKeyValue) ;
-		//Object keyValue= stringConverter(strClusteringKeyValue,strTableName); //CONVERTS KEY STRING TO AN OBJECT TO BE COMPARABLE 
 		int rowIndex = binarySearchRow(strTableName, pageIndex, keyValue);
 		FileInputStream fileIn = new FileInputStream("src/resources/" + strTableName + pageIndex + ".class");
 		 ObjectInputStream in = new ObjectInputStream(fileIn) ;
@@ -652,7 +651,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 	 			
 	 			 
 	 			//delete the row from the page 
-	 		    //int pageIndex =0;
 	 			if(singleDelete == true && numOfIndices==0)
 	 				pageIndex = searchForPage(strTableName,keyValue) ;
 	 			
@@ -830,14 +828,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 	     tableOut.close();
 	     tableFileOut.close();
 	     
-	    /* String xMin = t.getHtblColNameMin().get(strarrColName[0]);
-	     String xMax = t.getHtblColNameMax().get(strarrColName[0]);
-	     String yMin = t.getHtblColNameMin().get(strarrColName[1]);
-	     String yMax = t.getHtblColNameMax().get(strarrColName[1]);
-	     String zMin = t.getHtblColNameMin().get(strarrColName[2]);
-	     String zMax = t.getHtblColNameMax().get(strarrColName[2]); */
-	     
-	     
+    
 	     Object xMin = convertStringToObject(t.getHtblColNameMin().get(strarrColName[0]), t.getHtblColNameType().get(strarrColName[0]));
 	     Object xMax = convertStringToObject(t.getHtblColNameMax().get(strarrColName[0]), t.getHtblColNameType().get(strarrColName[0]));
 	     Object yMin = convertStringToObject(t.getHtblColNameMin().get(strarrColName[1]), t.getHtblColNameType().get(strarrColName[1]));
@@ -1168,6 +1159,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 				 			
 				 			arrSQLTerms = tempTerms2;
 				 			strarrOperators = tempOperators2;
+				 			
 		
 			 			}
 		 			
@@ -1242,7 +1234,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			 
 	
 			
-			// for(int i=0; i<strarrOperators.length ; i++) {
              int i=0;
 				 while(i<strarrOperators.length)	{
 				 if(strarrOperators[i].equals("XOR")) {
@@ -1264,7 +1255,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 
 			 }
 			 
-			// for(int i=0; i<strarrOperators.length ; i++) {
 				int j =0;	
 				while(j<strarrOperators.length)	{
 				 if(strarrOperators[j].equals("AND")) {
@@ -1289,7 +1279,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
 			 }
 			 
 				
-			// for(int i=0; i<strarrOperators.length ; i++) {
 				int y=0;
 				while(y<strarrOperators.length)	{
 			
@@ -1660,6 +1649,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  		 				currentNode.getPoints().remove(nodePoint);
  		 				root.addPoint(newValuePoints.get(i));
  		 				pageIndex = p.getPageNumber();
+ 		 				break;
  		 				}	
  		 			}
  				
@@ -1680,7 +1670,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  	
  	
  	public void updateIndicesUponInsert(ArrayList<OctreePoint> dummyPoints, int numOfPointsPerIndex, String strTableName, Page p) throws IOException, ParseException, ClassNotFoundException {
- 		//int numOfIndices = dummyPoints.size()/numOfPointsPerIndex;
+
  		
  		for(int i=0;i<dummyPoints.size();i++) { //loop on all indices
  			//1- unserialise root
@@ -1706,7 +1696,6 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
  	
  	
  	public int updateIndicesUponDelete(ArrayList<OctreePoint> dummyPoints, int numOfPointsPerIndex, String strTableName) throws IOException, ParseException, ClassNotFoundException {
- 		//int numOfIndices = dummyPoints.size()/numOfPointsPerIndex;
  		int pageIndex=1;
  		for(int i=0;i<dummyPoints.size();i++) { //loop on all indices
  			//1- unserialise root
@@ -1959,96 +1948,7 @@ public void insertIntoTable(String strTableName, Hashtable<String,Object> htblCo
     {
 		
 		
-		DBApp dbApp = new DBApp( );
-	           
-
-		
-	/*	Hashtable table1 = new Hashtable( );
-		table1.put("id",10);
-		table1.put("name","black");
-		table1.put("gpa",1.0);
-		dbApp.insertIntoTable("Student", table1);
-		
-		
-		Hashtable table2 = new Hashtable( );
-		table2.put("id",11);
-		table2.put("name","white");
-		table2.put("gpa",2.2);
-		dbApp.insertIntoTable("Student", table2);  
-		
-		
-		Hashtable table3 = new Hashtable( );
-		table3.put("id",12);
-		table3.put("name","blue");
-		table3.put("gpa", 3.9); 
-		dbApp.insertIntoTable("Student", table3);   */
-		
-
-   
-
-		//String[] columns = {"id","gpa", "name"};
-	   // dbApp.createIndex("Student", columns); 
 	
-		
-		
-		
-		Hashtable table4 = new Hashtable( );
-		//table4.put("id",2);
-		//table4.put("name","bassel");
-		table4.put("gpa",2.0);
-		dbApp.deleteFromTable("Student",  table4);  
-		
-		
-
-		
-		try {
-			 
-				FileInputStream fileIn;
-				fileIn = new FileInputStream("src/resources/StudentIndex1.class");
-				ObjectInputStream in = new ObjectInputStream(fileIn);
-		        OctreeIndex index = (OctreeIndex) in.readObject();
-		        in.close();
-		        fileIn.close();
-		       // OctreeNode root = index.getRoot();
-		        //ArrayList<OctreePoint> points=root.getChildren().get(0).getPoints();
-		        //dbApp.printPoints(points);
-		        
-		        index.printAllPoints();
-		     
-
-		         
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}    
-		
-		
-	
-
-	    
-		 try {
-			 
-			 FileInputStream fileIn;
-			 fileIn = new FileInputStream("src/resources/Student1.class");
-		         ObjectInputStream in = new ObjectInputStream(fileIn);
-		         Page p = (Page) in.readObject();
-		         in.close();
-		         fileIn.close();
-		         System.out.println(p.getRows());
-		         
-		         
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}   
-   
-	
-
-
-	
-	
-
-	    
 		
 	
 		
