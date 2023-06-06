@@ -1,0 +1,47 @@
+String strTableName = "Student";
+		Hashtable htblColNameType = new Hashtable( );
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("gpa", "java.lang.double");
+		
+		Hashtable htblColNameMin = new Hashtable( );
+		htblColNameMin.put("id", "0");
+		htblColNameMin.put("name", "AAA");
+		htblColNameMin.put("gpa", "0");
+		
+		Hashtable htblColNameMax = new Hashtable( );
+		htblColNameMax.put("id", "5");
+		htblColNameMax.put("name",  "ZZZZZZZZZZ");
+		htblColNameMax.put("gpa", "5");
+		dbApp.createTable( strTableName, "id", htblColNameType , htblColNameMin , htblColNameMax);
+
+
+
+Hashtable table = new Hashtable( );
+		table.put("id",1);
+		table.put("name","Amr");
+		table.put("gpa",0);
+		dbApp.insertIntoTable("Student", table);  
+		
+		Hashtable table1 = new Hashtable( );
+		table1.put("id",2);
+		table1.put("name","Mina Tamer");
+		table1.put("gpa",3);
+		dbApp.insertIntoTable("Student", table1);  
+		
+		Hashtable table2 = new Hashtable( );
+		table2.put("id",3);
+		table2.put("name","Shahd T");
+		table2.put("gpa",1);
+		dbApp.insertIntoTable("Student", table2);  
+		
+		Hashtable table3 = new Hashtable( );
+		table3.put("id",4);
+		table3.put("name","Amr");
+		table3.put("gpa",5);
+		dbApp.insertIntoTable("Student", table3);
+
+
+
+String[] columns = {"id","gpa", "name"};
+	    dbApp.createIndex("Student", columns);

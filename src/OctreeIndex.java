@@ -48,6 +48,10 @@ public class OctreeIndex implements java.io.Serializable {
 	public void printAllPoints() {
 	    printAllPoints(root);
 	}
+	
+	public void printAllBoundaries() {
+		printAllBoundaries(root);
+	}
 
 	public void printAllPoints(OctreeNode node) {
 	    if (node.getChildren().size()==0) {
@@ -61,6 +65,21 @@ public class OctreeIndex implements java.io.Serializable {
 	    }
 	}
 	
+	
+	public void printAllBoundaries(OctreeNode node) {
+		System.out.println(node.getxMin() + " " + node.getxMax());
+		System.out.println(node.getyMin() + " " + node.getyMax());
+		System.out.println(node.getzMin() + " " + node.getzMax());
+	    if (node.getChildren().size()==0) {
+	        for (OctreePoint point : node.getPoints()) {
+	            System.out.println(point.toString());
+	        }
+	    } else {
+	        for (OctreeNode child : node.getChildren()) {
+	        	printAllBoundaries(child);
+	        }
+	    }
+	}
     
    
 

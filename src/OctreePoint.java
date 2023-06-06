@@ -36,8 +36,20 @@ public class OctreePoint implements java.io.Serializable {
 	}
 	@Override
 	public String toString() {
+		String r = "";
+		if (this.getX() != null) {
+			r+= this.getX().toString() + " , ";
+		}
+		if (this.getY() != null) {
+			r+= this.getY().toString() + " , ";
+		}
+		if (this.getZ() != null) {
+			r+= this.getZ().toString();
+		}
+			
 	
-		return (this.getX().toString() + " , " + this.getY() + " , " + this.getZ().toString());
+		//return (this.getX().toString() + " , " + this.getY() + " , " + this.getZ().toString());
+		return r;
 	}
 	
 	

@@ -1,0 +1,86 @@
+Hashtable table1 = new Hashtable( );
+		table1.put("id",1);
+		table1.put("name","rawan");
+		table1.put("gpa",2.0);
+		dbApp.insertIntoTable("Student", table1);
+		
+		
+		Hashtable table2 = new Hashtable( );
+		table2.put("id",2);
+		table2.put("name","ahmed");
+		table2.put("gpa",2.0);
+		dbApp.insertIntoTable("Student", table2);  
+		
+		
+		Hashtable table3 = new Hashtable( );
+		table3.put("id",3);
+		table3.put("name","mousa");
+		table3.put("gpa", 4.0); 
+		dbApp.insertIntoTable("Student", table3);   
+
+-----------
+
+		
+		Hashtable table1 = new Hashtable( );
+		table1.put("id",4);
+		table1.put("name","mina");
+		table1.put("gpa",2.0);
+		dbApp.insertIntoTable("Student", table1);
+		
+		
+		Hashtable table2 = new Hashtable( );
+		table2.put("id",5);
+		table2.put("name","bosbos");
+		table2.put("gpa",2.0);
+		dbApp.insertIntoTable("Student", table2);  
+		
+		
+		Hashtable table3 = new Hashtable( );
+		table3.put("id",6);
+		table3.put("name","shosha");
+		table3.put("gpa", 4.0); 
+		dbApp.insertIntoTable("Student", table3);   
+		 
+--------
+Hashtable table1 = new Hashtable( );
+		table1.put("id",7);
+		table1.put("name","maya");
+		table1.put("gpa",1.0);
+		dbApp.insertIntoTable("Student", table1);
+		
+		
+		Hashtable table2 = new Hashtable( );
+		table2.put("id",8);
+		table2.put("name","slim");
+		table2.put("gpa",2.2);
+		dbApp.insertIntoTable("Student", table2);  
+		
+		
+		Hashtable table3 = new Hashtable( );
+		table3.put("id",9);
+		table3.put("name","hana");
+		table3.put("gpa", 3.9); 
+		dbApp.insertIntoTable("Student", table3);   
+
+-------
+
+Hashtable table1 = new Hashtable( );
+		table1.put("id",10);
+		table1.put("name","black");
+		table1.put("gpa",1.0);
+		dbApp.insertIntoTable("Student", table1);
+		
+		
+		Hashtable table2 = new Hashtable( );
+		table2.put("id",11);
+		table2.put("name","white");
+		table2.put("gpa",2.2);
+		dbApp.insertIntoTable("Student", table2);  
+		
+		
+		Hashtable table3 = new Hashtable( );
+		table3.put("id",12);
+		table3.put("name","blue");
+		table3.put("gpa", 3.9); 
+		dbApp.insertIntoTable("Student", table3);  
+		 
